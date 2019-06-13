@@ -332,7 +332,7 @@ class UsersController < ApplicationController
   end
 
   def create
-    params.require(:email)
+    params.require(:email) unless params[:is_noemail]
     params.require(:username)
     params.permit(:user_fields)
 
@@ -344,8 +344,12 @@ class UsersController < ApplicationController
       return fail_with("login.password_too_long")
     end
 
-    if params[:email].length > 254 + 1 + 253
-      return fail_with("login.email_too_long")
+    if params[:is_noemail]
+      params[:email] =  "#{SecureRandom.hex}@anon.#{Discourse.current_hostname}"
+    else
+      if params[:email].length > 254 + 1 + 253
+        return fail_with("login.email_too_long")
+      end
     end
 
     if User.reserved_username?(params[:username])
@@ -357,6 +361,7 @@ class UsersController < ApplicationController
     new_user_params = user_params
     user = User.unstage(new_user_params)
     user = User.new(new_user_params) if user.nil?
+
 
     # Handle API approval
     ReviewableUser.set_approved_fields!(user, current_user) if user.approved?
@@ -1249,7 +1254,8 @@ class UsersController < ApplicationController
       :website,
       :dismissed_banner_key,
       :profile_background_upload_url,
-      :card_background_upload_url
+      :card_background_upload_url,
+      :is_noemail
     ]
 
     permitted << { custom_fields: User.editable_user_custom_fields } unless User.editable_user_custom_fields.blank?

@@ -431,7 +431,7 @@ class User < ActiveRecord::Base
   end
 
   def should_validate_email_address?
-    !skip_email_validation && !staged?
+    !skip_email_validation && !staged? && !is_noemail
   end
 
   # Approve this user
@@ -911,7 +911,8 @@ class User < ActiveRecord::Base
   def email_confirmed?
     email_tokens.where(email: email, confirmed: true).present? ||
     email_tokens.empty? ||
-    single_sign_on_record&.external_email == email
+    single_sign_on_record&.external_email == email ||
+    is_noemail
   end
 
   def activate

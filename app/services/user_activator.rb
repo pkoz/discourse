@@ -31,7 +31,9 @@ class UserActivator
   def factory
     invite = Invite.find_by(email: Email.downcase(@user.email))
 
-    if !user.active?
+    if @user.is_noemail
+      NoEmailActivator
+    elsif !user.active?
       EmailActivator
     elsif SiteSetting.must_approve_users? && !(invite.present? && !invite.expired? && !invite.destroyed? && invite.link_valid?)
       ApprovalActivator
@@ -82,5 +84,17 @@ class LoginActivator < UserActivator
 
   def success_message
     I18n.t("login.active")
+  end
+end
+
+class NoEmailActivator < UserActivator
+  include CurrentUser
+
+  def activate
+    success_message
+  end
+
+  def success_message
+    I18n.t("login.active") + '[no email]'
   end
 end

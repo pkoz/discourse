@@ -9,15 +9,16 @@ module Jobs
         .where(active: false, staged: false, user_custom_fields: { value: nil })
         .where('users.created_at BETWEEN ? AND ?', 3.days.ago, 2.days.ago)
         .find_each do |user|
+        unless user.is_noemail
+          user.custom_fields['activation_reminder'] = true
+          user.save_custom_fields
 
-        user.custom_fields['activation_reminder'] = true
-        user.save_custom_fields
-
-        email_token = user.email_tokens.create!(email: user.email)
-        Jobs.enqueue(:user_email,
-                     type: :activation_reminder,
-                     user_id: user.id,
-                     email_token: email_token.token)
+          email_token = user.email_tokens.create!(email: user.email)
+          Jobs.enqueue(:user_email,
+                       type: :activation_reminder,
+                       user_id: user.id,
+                       email_token: email_token.token)
+        end
       end
     end
   end
