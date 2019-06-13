@@ -3,15 +3,18 @@ development:
   adapter: postgresql
   database: <%= ENV['DISCOURSE_DEV_DB'] || 'discourse_development' %>
   min_messages: warning
+  username: <%= ENV['DB_USERNAME']%>
+  password: <%= ENV['DB_PASSWORD']%>
   pool: 5
   timeout: 5000
   checkout_timeout: <%= ENV['CHECKOUT_TIMEOUT'] || 5 %>
+  host: <%= ENV['DB_HOST'] %>
   host_names:
     ### Don't include the port number here. Change the "port" site setting instead, at /admin/site_settings.
     ### If you change this setting you will need to
     ###   - restart sidekiq if you change this setting
     ###   - rebake all to posts using: `RAILS_ENV=production bundle exec rake posts:rebake`
-    - "localhost"
+    - <%= ENV['DB_HOST'] %>
 
 # Warning: The database defined as "test" will be erased and
 # re-generated from your development database when you run "rake".
@@ -21,10 +24,13 @@ test:
   adapter: postgresql
   database: <%= ENV["RAILS_DB"] ? ENV["RAILS_DB"] : "discourse_test" %>
   min_messages: warning
+  username: <%= ENV['DB_USERNAME']%>
+  password: <%= ENV['DB_PASSWORD']%>
   pool: 5
   timeout: 5000
+  host: <%= ENV['DB_HOST'] %>
   host_names:
-    - test.localhost
+    - <%= ENV['DB_HOST'] %>
 
 # profile db is used for benchmarking using the script/bench.rb script
 profile:
